@@ -1,0 +1,1 @@
+console.error("Error: Cannot find module 'C:\\Users\\andre\\OneDrive\\Documents\\_AllIHave\\Prog\\Barternet\\index.js' from 'C:\\Users\\andre\\OneDrive\\Documents\\_AllIHave\\Prog\\Barternet'");
