@@ -57,6 +57,7 @@ gulp.task('build', function(){
     entries: [path.ENTRY_POINT],
     transform: [reactify]
   })
+    .transform("babelify", {presets: ["es2015", "react"]})
     .bundle()
     .pipe(source(path.MINIFIED_OUT))
     .pipe(streamify(uglify(path.MINIFIED_OUT)))

@@ -11,10 +11,13 @@ app.set('view engine', 'html');
 app.use(express.static('dist'));
 
 // server and routing
-server.listen(8080);
+server.listen(Number(process.env.PORT || 5000));
+
 app.get('/', function (req, res) {
   res.render('index');
 });
+
+users = [];
 
 var io = require('socket.io')(server);
 // socket.io demo
@@ -23,13 +26,11 @@ io.on('connection', function (socket) {
   socket.on('client event', function (data) {
     console.log(data);
   });
-});
-
-io.on('connection', function (socket) {
-  socket.emit('server event', { foo: 'bar' });
-  socket.on('client event', function (data) {
-    socket.broadcast.emit('update label', data);
+  socket.on('login', function(data) {
+    console.log("SERVER: Welcome, " + data.username);
+    users.push(data);
   });
 });
+
 
 console.log("international barter network activated");
