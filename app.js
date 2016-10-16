@@ -9,6 +9,7 @@ app.engine('html', swig.renderFile);
 app.set('view engine', 'html');
 
 app.use(express.static('dist'));
+app.use(express.static('public'));
 
 // server and routing
 server.listen(Number(process.env.PORT || 5000));
