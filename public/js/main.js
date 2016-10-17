@@ -8,21 +8,12 @@ var Button = require('react-bootstrap').Button;
 var Modal = require('react-bootstrap').Modal;
 var OverlayTrigger = require('react-bootstrap').OverlayTrigger;
 var FormControl = require('react-bootstrap').FormControl;
+var FormGroup = require('react-bootstrap').FormGroup;
+var InputGroup = require('react-bootstrap').InputGroup;
+var InputGroupBtn = require('react-bootstrap').InputGroup.Button;
+var Navbar = require('react-bootstrap').Navbar;
 
 var socket = io();
-
-var MessageInput = React.createClass({
-    _notifyServer: function(event) {
-        socket.emit('client event', {value: event.target.value});
-    },
-    render: function() {
-        return (
-            <div className="update-label">
-                <input type="text" placeholder="Enter text" onChange={this._notifyServer}/>
-            </div>
-        );
-    }
-});
 
 var NameInput = React.createClass({
     _notifyServer: function(event) {
@@ -39,14 +30,7 @@ var NameInput = React.createClass({
 
 const LoginModal = React.createClass({
     getInitialState() {
-        return {showModal: true};
-    },
-
-    login() {
-        // should check they really put a string in
-        this.setState({showModal: false});
-        socket.emit('login', {username: $("#nameinp").val()});
-        console.log($("#nameinp").val());
+        return {showModal: this.props.showModal, canLogin: this.props.show};
     },
 
     open() {
@@ -57,22 +41,62 @@ const LoginModal = React.createClass({
 
         return (
             <div>
-                <Modal show={this.state.showModal} onHide={this.login} >
+                <Modal show={this.props.showModal} onHide={this.props.loginHandler}>
                     <Modal.Header closeButton>
-                        <Modal.Title>Login!</Modal.Title>
+                        <Modal.Title>Enter the Barternet!</Modal.Title>
                     </Modal.Header>
                     <Modal.Body>
-                      <FormControl type="text" value={this.state.value} placeholder="What's your name, kid?" id="nameinp" />
+                        <form onSubmit={this.props.loginHandler}>
+                            <InputGroup >
+                                <FormControl type="text" id="nameinp" onChange={this.props.textChecker}/>
+                                <InputGroupBtn>
+                                    <Button type="submit" disabled={!this.props.canLogin}>Go!</Button>
+                                </InputGroupBtn>
+                            </InputGroup>
+                        </form>
                     </Modal.Body>
                     <Modal.Footer>
-                        <Button onClick={this.login}>Login</Button>
+                        Made by Andre Popovitch
                     </Modal.Footer>
                 </Modal>
             </div>
         );
     }
 });
-ReactDOM.render(<LoginModal />, document.getElementById('login-modal'));
+
+const MessageForm = React.createClass({
+    getInitialState() {
+        return {canSubmit: false, message: ""};
+    },
+
+    checkTextEntered(e) {
+        this.setState({
+            message: e.target.value,
+            canSubmit: e.target.value.length > 0
+        });
+    },
+
+    sendMessage: function(event) {
+        event.preventDefault();
+        socket.emit('sendMessage', {message: $('#chattybar').val()});
+        $('#chattybar').val("");
+    },
+
+    render() {
+        return (
+            <footer>
+                <form id="chattychat" class="footer" onSubmit={this.sendMessage}>
+                    <InputGroup>
+                        <FormControl type="text" placeholder="Enter text" id="chattybar" onChange={this.checkTextEntered}/>
+                        <InputGroupBtn>
+                            <Button id="sendbutton" type="submit" disabled={!this.state.canSubmit}>Send</Button>
+                        </InputGroupBtn>
+                    </InputGroup>
+                </form>
+            </footer>
+        )
+    }
+});
 
 var Label = React.createClass({
     _onUpdateLabel: function(data) {
@@ -90,22 +114,18 @@ var Label = React.createClass({
     }
 });
 
-var input = ReactDOM.render(
-    <div>
-    <MessageInput/>
-    <br/>
-    <NameInput/>
-</div>, document.getElementById('mount-point'));
-var label = ReactDOM.render(
-    <Label/>, document.getElementById('label-mount-point'));
-socket.on('update label', function(data) {
-    label._onUpdateLabel(data);
-});
-
 var Message = React.createClass({
+
+    componentDidMount() {
+        /*$('html, body').animate({
+            scrollTop: $(document).height() - $(window).height()
+        }, 1400, "easeOutQuint");*/
+
+    }
+
     rawMarkup: function() {
         var md = new Remarkable();
-        var rawMarkup = md.render(this.props.children.toString());
+        var rawMarkup = md.render(this.props.text.toString());
         return {__html: rawMarkup};
     },
 
@@ -113,7 +133,7 @@ var Message = React.createClass({
         return (
             <div className="message">
                 <span className="messageAuthor">
-                    {this.props.author}
+                    {this.props.sender}
                 </span>
                 <span dangerouslySetInnerHTML={this.rawMarkup()} className="messageBody"/>
             </div>
@@ -123,15 +143,13 @@ var Message = React.createClass({
 
 var MessageList = React.createClass({
     render() {
+        mtoget = [];
+        for (var message = 0; message < this.props.messages.length; message++) {
+            mtoget.push(<Message key={message} sender={this.props.messages[message].sender} text={this.props.messages[message].text}/>);
+        }
         return (
             <div className='messages'>
-                <h2>
-                    Conversation:
-                </h2>
-                {this.props.messages.map((message, i) => {
-                    return (<Message key={i} user={message.user} text={message.text}/>);
-                })
-}
+                {mtoget}
             </div>
         );
     }
@@ -140,7 +158,7 @@ var MessageList = React.createClass({
 var ChatApp = React.createClass({
 
     getInitialState() {
-        return {users: [], messages: [], text: ''};
+        return {users: [], messages: [], text: '', name: '', showModal: true};
     },
 
     componentDidMount() {
@@ -149,6 +167,7 @@ var ChatApp = React.createClass({
         socket.on('user:join', this._userJoined);
         socket.on('user:left', this._userLeft);
         socket.on('change:name', this._userChangedName);
+        socket.on('receiveMessage', this.handleRecieveMessage);
 
     },
 
@@ -220,21 +239,35 @@ var ChatApp = React.createClass({
         });
     },
 
+    handleRecieveMessage(data) {
+        console.log(data);
+        this.setState({messages: this.state.messages.concat(data)});
+
+    },
+
+    login(event) {
+        // should check they really put a string in
+        this.setState({showModal: false});
+        socket.emit('login', {username: this.state.name});
+        event.preventDefault();
+    },
+    checkTextEnteredForLogin(e) {
+        this.setState({
+            name: $("#nameinp").val(),
+            canLogin: $("#nameinp").val().length > 0 && !$("#nameinp").val().includes(" ")
+        });
+    },
+
     render() {
         return (
             <div>
+                <LoginModal loginHandler={this.login} textChecker={this.checkTextEnteredForLogin} showModal={this.state.showModal} canLogin={this.state.canLogin}/>
+                <MessageForm/>
                 <MessageList messages={this.state.messages}/>
-                <MessageForm onMessageSubmit={this.handleMessageSubmit} user={this.state.user}/>
-                <ChangeNameForm onChangeName={this.handleChangeName}/>
             </div>
         );
     }
 });
 
-const alertInstance = (
-    <Alert bsStyle="warning">
-        <strong>Holy guacamole!</strong>
-        Best check yo self, youre not looking too good.
-    </Alert>
-);
-ReactDOM.render(alertInstance, document.getElementById('container'));
+ReactDOM.render(
+    <ChatApp/>, document.getElementById('container'));

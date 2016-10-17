@@ -23,13 +23,27 @@ users = [];
 var io = require('socket.io')(server);
 // socket.io demo
 io.on('connection', function (socket) {
+
+  var nick = "";
+
+
   socket.emit('server event', { foo: 'bar' });
   socket.on('client event', function (data) {
     console.log(data);
   });
   socket.on('login', function(data) {
-    console.log("SERVER: Welcome, " + data.username);
-    users.push(data);
+    if (data.username && !data.username.includes(" "))
+    {
+        console.log("SERVER: Welcome, " + data.username);
+        users.push(data);
+        nick = data.username;
+        socket.join('bigchat')
+    }
+
+  });
+  socket.on('sendMessage', function(data) {
+    console.log("SERVER: USER " + nick + " JUST SENT " + data.message);
+    io.to('bigchat').emit('receiveMessage', {sender: nick, text: data.message});
   });
 });
 
