@@ -9,6 +9,15 @@ footer {
   font-size: 1.2em;
 }
 
+.message {
+  padding: .3em;
+}
+
+.messageFromYou
+{
+  background-color: #444444;
+}
+
 html { height: 100%; overflow:auto; }
 body { height: 100%; }
 

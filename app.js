@@ -54,12 +54,12 @@ io.on('connection', function(socket) {
                 nick = data.username;
                 socket.join('bigchat')
                 io.to('bigchat').emit('receiveMessage', {
-                    sender: "server",
+                    sender: "BarterBot",
                     text: "Welcome to the International Barter Network, " + nick
                 });
             } else {
                 socket.emit('receiveMessage', {
-                    sender: 'server',
+                    sender: 'BarterBot',
                     text: 'someone already took that name!'
                 })
                 socket.disconnect();

@@ -111,12 +111,11 @@ var Message = React.createClass({
     },
 
     withinScrollThreshold() {
-        return ($('html, body').scrollTop() + $('html, body').height() + 300 >= $('html, body')[0].scrollHeight);
+        return ($('html, body').scrollTop() + $('html, body').height() + 200 >= $('html, body')[0].scrollHeight);
     },
 
     componentDidMount() {
         if (this.withinScrollThreshold()) {
-            console.log('mount');
             var page = $('html, body');
             //page.stop(true,true).animate({ scrollTop: page[0].scrollHeight}, 100);
             page.animate({
@@ -128,13 +127,14 @@ var Message = React.createClass({
     rawMarkup: function() {
         var md = new Remarkable({linkify: true, typographer: true});
         var rawMarkup = md.render(this.props.text);
-        console.log(rawMarkup);
         return {__html: rawMarkup};
     },
 
     render: function() {
+        var classn = "message " + (this.props.readerName == this.props.sender ? "messageFromYou" : "");
+        console.log(this.props.sender);
         return (
-            <div className="message">
+            <div className={classn}>
                 <span className="messageAuthor">
                     <span className="time">{this.state.time}</span>&nbsp; {this.props.sender}: &nbsp;
                 </span>
@@ -148,7 +148,7 @@ var MessageList = React.createClass({
     render() {
         mtoget = [];
         for (var message = 0; message < this.props.messages.length; message++) {
-            mtoget.push(<Message key={message} sender={this.props.messages[message].sender} text={this.props.messages[message].text}/>);
+            mtoget.push(<Message key={message} sender={this.props.messages[message].sender} text={this.props.messages[message].text} readerName={this.props.name}/>);
         }
         return (
             <div className='messages' id="MessageList">
@@ -164,8 +164,8 @@ var Topbar = React.createClass({
         return (
             <Navbar>
                 <Navbar.Header>
-                    <Navbar.Brand pullleft>
-                        <a href="#">Barternet!</a>
+                     <Navbar.Brand>
+                        <img src="/imgs/barter.png" /><a href="#">Barternet!</a>
                     </Navbar.Brand>
                     <Navbar.Toggle/>
                 </Navbar.Header>
@@ -254,9 +254,9 @@ var ChatApp = React.createClass({
         return (
             <div>
                 <Topbar bux={this.state.Barterbux}/>
-                <LoginModal loginHandler={this.login} textChecker={this.checkTextEnteredForLogin} showModal={this.state.showModal} canLogin={this.state.canLogin}/>
+                <LoginModal loginHandler={this.login} textChecker={this.checkTextEnteredForLogin} showModal={this.state.showModal} canLogin={this.state.canLogin}  />
                 <MessageForm/>
-                <MessageList messages={this.state.messages}/>
+                <MessageList messages={this.state.messages} name={this.state.name} />
             </div>
         );
     }
