@@ -136,8 +136,7 @@ var Message = React.createClass({
         return (
             <div className="message">
                 <span className="messageAuthor">
-                    <span className="time">{this.state.time}</span>&nbsp;
-                    {this.props.sender}:	&nbsp;
+                    <span className="time">{this.state.time}</span>&nbsp; {this.props.sender}: &nbsp;
                 </span>
                 <span className="messageBody" dangerouslySetInnerHTML={this.rawMarkup()}/>
             </div>
