@@ -12,6 +12,8 @@ var FormGroup = require('react-bootstrap').FormGroup;
 var InputGroup = require('react-bootstrap').InputGroup;
 var InputGroupBtn = require('react-bootstrap').InputGroup.Button;
 var Navbar = require('react-bootstrap').Navbar;
+var NavItem = require('react-bootstrap').NavItem;
+var Nav = require('react-bootstrap').Nav;
 var moment = require('moment');
 
 var socket = io();
@@ -80,10 +82,9 @@ const MessageForm = React.createClass({
     sendMessage: function(event) {
         event.preventDefault();
         var mes = $('#chattybar').val()
-        if (mes != "")
-        {
-          socket.emit('sendMessage', {message: mes});
-          $('#chattybar').val("");
+        if (mes != "") {
+            socket.emit('sendMessage', {message: mes});
+            $('#chattybar').val("");
         }
     },
 
@@ -103,33 +104,29 @@ const MessageForm = React.createClass({
     }
 });
 
-
-
 var Message = React.createClass({
 
-      getInitialState()
-      {
-            return ({time: moment().format('h:mm:ss a').toString()})
-      },
-
-      withinScrollThreshold() {
-          return ($('html, body').scrollTop() + $('html, body').height() + 300 >= $('html, body')[0].scrollHeight);
-      },
-
-    componentDidMount() {
-      if (this.withinScrollThreshold()) {
-        console.log('mount');
-        var page = $('html, body');
-        //page.stop(true,true).animate({ scrollTop: page[0].scrollHeight}, 100);
-        page.animate({ scrollTop: page.prop("scrollHeight")}, 100 );
-      }
+    getInitialState() {
+        return ({time: moment().format('h:mm:ss a').toString()})
     },
 
+    withinScrollThreshold() {
+        return ($('html, body').scrollTop() + $('html, body').height() + 300 >= $('html, body')[0].scrollHeight);
+    },
+
+    componentDidMount() {
+        if (this.withinScrollThreshold()) {
+            console.log('mount');
+            var page = $('html, body');
+            //page.stop(true,true).animate({ scrollTop: page[0].scrollHeight}, 100);
+            page.animate({
+                scrollTop: page.prop("scrollHeight")
+            }, 100);
+        }
+    },
 
     rawMarkup: function() {
-        var md = new Remarkable({
-          linkify: true,
-          typographer: true });
+        var md = new Remarkable({linkify: true, typographer: true});
         var rawMarkup = md.render(this.props.text);
         console.log(rawMarkup);
         return {__html: rawMarkup};
@@ -139,9 +136,10 @@ var Message = React.createClass({
         return (
             <div className="message">
                 <span className="messageAuthor">
-                    <span className="time">{this.state.time}</span>  {this.props.sender}:&nbsp;
+                    <span className="time">{this.state.time}</span>
+                    {this.props.sender}:&nbsp;
                 </span>
-                <span className="messageBody" dangerouslySetInnerHTML={this.rawMarkup()} />
+                <span className="messageBody" dangerouslySetInnerHTML={this.rawMarkup()}/>
             </div>
         );
     }
@@ -151,7 +149,7 @@ var MessageList = React.createClass({
     render() {
         mtoget = [];
         for (var message = 0; message < this.props.messages.length; message++) {
-            mtoget.push(<Message key={message} sender={this.props.messages[message].sender} text={this.props.messages[message].text} />);
+            mtoget.push(<Message key={message} sender={this.props.messages[message].sender} text={this.props.messages[message].text}/>);
         }
         return (
             <div className='messages' id="MessageList">
@@ -161,10 +159,40 @@ var MessageList = React.createClass({
     }
 });
 
+var Topbar = React.createClass({
+    render() {
+
+        return (
+            <Navbar>
+                <Navbar.Header>
+                    <Navbar.Brand>
+                        <a href="#">Barternet!</a>
+                    </Navbar.Brand>
+                    <Navbar.Toggle/>
+                </Navbar.Header>
+                <Navbar.Collapse>
+                    <Nav>
+                        <NavItem eventKey={1} href="http://owossohigh.mi.oph.schoolinsites.com/?PageName=%27Teachers%27">School staff</NavItem>
+                        <NavItem eventKey={2} href="https://ps.owosso.k12.mi.us/public/">Powerschool</NavItem>
+                        <Navbar.Text>Current Barterbux: {this.props.bux}</Navbar.Text>
+                    </Nav>
+                </Navbar.Collapse>
+            </Navbar>
+        );
+    }
+});
+
 var ChatApp = React.createClass({
 
     getInitialState() {
-        return {users: [], messages: [], text: '', name: '', showModal: true};
+        return {
+            users: [],
+            messages: [],
+            text: '',
+            name: '',
+            showModal: true,
+            Barterbux: 0
+        };
     },
 
     componentDidMount() {
@@ -181,47 +209,6 @@ var ChatApp = React.createClass({
     _initialize(data) {
         var {users, name} = data;
         this.setState({users, user: name});
-    },
-
-    _messageRecieve(message) {
-        var {messages} = this.state;
-        messages.push(message);
-        this.setState({messages});
-    },
-
-    _userJoined(data) {
-        var {users, messages} = this.state;
-        var {name} = data;
-        users.push(name);
-        messages.push({
-            user: 'APPLICATION BOT',
-            text: name + ' Joined'
-        });
-        this.setState({users, messages});
-    },
-
-    _userLeft(data) {
-        var {users, messages} = this.state;
-        var {name} = data;
-        var index = users.indexOf(name);
-        users.splice(index, 1);
-        messages.push({
-            user: 'APPLICATION BOT',
-            text: name + ' Left'
-        });
-        this.setState({users, messages});
-    },
-
-    _userChangedName(data) {
-        var {oldName, newName} = data;
-        var {users, messages} = this.state;
-        var index = users.indexOf(oldName);
-        users.splice(index, 1, newName);
-        messages.push({
-            user: 'APPLICATION BOT',
-            text: 'Change Name : ' + oldName + ' ==> ' + newName
-        });
-        this.setState({users, messages});
     },
 
     handleMessageSubmit(message) {
@@ -267,9 +254,10 @@ var ChatApp = React.createClass({
     render() {
         return (
             <div>
+                <Topbar bux={this.state.Barterbux}/>
                 <LoginModal loginHandler={this.login} textChecker={this.checkTextEnteredForLogin} showModal={this.state.showModal} canLogin={this.state.canLogin}/>
-                <MessageForm />
-                <MessageList  messages={this.state.messages}/>
+                <MessageForm/>
+                <MessageList messages={this.state.messages}/>
             </div>
         );
     }
