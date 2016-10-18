@@ -18,6 +18,15 @@ footer {
   background-color: #444444;
 }
 
+.barterBrand
+{
+  max-height: 6em;
+  top: 0em;
+  margin: -10px -20px;
+  margin-bottom: -5em;
+
+}
+
 html { height: 100%; overflow:auto; }
 body { height: 100%; }
 

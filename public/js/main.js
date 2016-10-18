@@ -165,12 +165,13 @@ var Topbar = React.createClass({
             <Navbar>
                 <Navbar.Header>
                      <Navbar.Brand>
-                        <img src="/imgs/barter.png" /><a href="#">Barternet!</a>
+                        <a href="#">Barternet!</a>
                     </Navbar.Brand>
                     <Navbar.Toggle/>
                 </Navbar.Header>
                 <Navbar.Collapse>
                     <Nav>
+                      <Navbar.Text><img src="/imgs/barter.png" className="barterBrand" /></Navbar.Text>
                         <NavItem eventKey={1} href="http://owossohigh.mi.oph.schoolinsites.com/?PageName=%27Teachers%27">School staff</NavItem>
                         <NavItem eventKey={2} href="https://ps.owosso.k12.mi.us/public/">Powerschool</NavItem>
                         <Navbar.Text>Current Barterbux: {this.props.bux}</Navbar.Text>
