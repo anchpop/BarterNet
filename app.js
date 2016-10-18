@@ -21,10 +21,22 @@ app.get('/', function(req, res) {
 users = [];
 
 var io = require('socket.io')(server);
-// socket.io demo
+
+
+checkIfUsernameTaken = function(users, username) {
+  for (i=0; i<users.length; i++)
+  {
+    if (users[i].username === username)
+      return true;
+  }
+  return false;
+}
+
+
 io.on('connection', function(socket) {
 
     var nick = "";
+
 
 
     socket.emit('server event', {
@@ -36,16 +48,21 @@ io.on('connection', function(socket) {
     socket.on('login', function(data) {
         if (data.username && !data.username.includes(" ") && data.username != 'server') {
             console.log("SERVER: Welcome, " + data.username);
-            if (true) //!users.include(data))
+            if (!checkIfUsernameTaken(users, data.username))
             {
                 users.push(data);
                 nick = data.username;
                 socket.join('bigchat')
+                io.to('bigchat').emit('receiveMessage', {
+                    sender: "server",
+                    text: "Welcome to the International Barter Network, " + nick
+                });
             } else {
                 socket.emit('receiveMessage', {
                     sender: 'server',
-                    message: 'someone already took that name!'
+                    text: 'someone already took that name!'
                 })
+                socket.disconnect();
             }
         }
 
@@ -58,6 +75,8 @@ io.on('connection', function(socket) {
         });
     });
 });
+
+
 
 
 console.log("international barter network activated");
