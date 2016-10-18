@@ -5,5 +5,15 @@ footer {
 }
 
 .messages {
-  margin: 1em;
+  padding: 1em;
+  font-size: 1.2em;
+}
+
+html { height: 100%; overflow:auto; }
+body { height: 100%; }
+
+.time { color: #CCCCCC }
+
+p {
+    display: inline-block;
 }

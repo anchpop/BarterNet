@@ -12,6 +12,7 @@ var FormGroup = require('react-bootstrap').FormGroup;
 var InputGroup = require('react-bootstrap').InputGroup;
 var InputGroupBtn = require('react-bootstrap').InputGroup.Button;
 var Navbar = require('react-bootstrap').Navbar;
+var moment = require('moment');
 
 var socket = io();
 
@@ -78,13 +79,17 @@ const MessageForm = React.createClass({
 
     sendMessage: function(event) {
         event.preventDefault();
-        socket.emit('sendMessage', {message: $('#chattybar').val()});
-        $('#chattybar').val("");
+        var mes = $('#chattybar').val()
+        if (mes != "")
+        {
+          socket.emit('sendMessage', {message: mes});
+          $('#chattybar').val("");
+        }
     },
 
     render() {
         return (
-            <footer>
+            <footer id="MessageForm">
                 <form id="chattychat" class="footer" onSubmit={this.sendMessage}>
                     <InputGroup>
                         <FormControl type="text" placeholder="Enter text" id="chattybar" onChange={this.checkTextEntered}/>
@@ -98,34 +103,35 @@ const MessageForm = React.createClass({
     }
 });
 
-var Label = React.createClass({
-    _onUpdateLabel: function(data) {
-        this.setState({serverValue: data.value});
-    },
-    getInitialState: function() {
-        return {serverValue: ''};
-    },
-    render: function() {
-        return (
-            <div class="my-label">
-                <h2>{this.state.serverValue}</h2>
-            </div>
-        )
-    }
-});
+
 
 var Message = React.createClass({
 
-    componentDidMount() {
-        /*$('html, body').animate({
-            scrollTop: $(document).height() - $(window).height()
-        }, 1400, "easeOutQuint");*/
+      getInitialState()
+      {
+            return ({time: moment().format('h:mm:ss a').toString()})
+      },
 
-    }
+      withinScrollThreshold() {
+          return ($('html, body').scrollTop() + $('html, body').height() + 300 >= $('html, body')[0].scrollHeight);
+      },
+
+    componentDidMount() {
+      if (this.withinScrollThreshold()) {
+        console.log('mount');
+        var page = $('html, body');
+        //page.stop(true,true).animate({ scrollTop: page[0].scrollHeight}, 100);
+        page.animate({ scrollTop: page.prop("scrollHeight")}, 100 );
+      }
+    },
+
 
     rawMarkup: function() {
-        var md = new Remarkable();
-        var rawMarkup = md.render(this.props.text.toString());
+        var md = new Remarkable({
+          linkify: true,
+          typographer: true });
+        var rawMarkup = md.render(this.props.text);
+        console.log(rawMarkup);
         return {__html: rawMarkup};
     },
 
@@ -133,9 +139,9 @@ var Message = React.createClass({
         return (
             <div className="message">
                 <span className="messageAuthor">
-                    {this.props.sender}
+                    <span className="time">{this.state.time}</span>  {this.props.sender}:&nbsp;
                 </span>
-                <span dangerouslySetInnerHTML={this.rawMarkup()} className="messageBody"/>
+                <span className="messageBody" dangerouslySetInnerHTML={this.rawMarkup()} />
             </div>
         );
     }
@@ -145,10 +151,10 @@ var MessageList = React.createClass({
     render() {
         mtoget = [];
         for (var message = 0; message < this.props.messages.length; message++) {
-            mtoget.push(<Message key={message} sender={this.props.messages[message].sender} text={this.props.messages[message].text}/>);
+            mtoget.push(<Message key={message} sender={this.props.messages[message].sender} text={this.props.messages[message].text} />);
         }
         return (
-            <div className='messages'>
+            <div className='messages' id="MessageList">
                 {mtoget}
             </div>
         );
@@ -169,6 +175,7 @@ var ChatApp = React.createClass({
         socket.on('change:name', this._userChangedName);
         socket.on('receiveMessage', this.handleRecieveMessage);
 
+        $('#MessageList').css("padding-bottom", $('#MessageForm').height() + "px");
     },
 
     _initialize(data) {
@@ -240,7 +247,6 @@ var ChatApp = React.createClass({
     },
 
     handleRecieveMessage(data) {
-        console.log(data);
         this.setState({messages: this.state.messages.concat(data)});
 
     },
@@ -262,8 +268,8 @@ var ChatApp = React.createClass({
         return (
             <div>
                 <LoginModal loginHandler={this.login} textChecker={this.checkTextEnteredForLogin} showModal={this.state.showModal} canLogin={this.state.canLogin}/>
-                <MessageForm/>
-                <MessageList messages={this.state.messages}/>
+                <MessageForm />
+                <MessageList  messages={this.state.messages}/>
             </div>
         );
     }
