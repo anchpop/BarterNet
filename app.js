@@ -32,12 +32,18 @@ io.on('connection', function (socket) {
     console.log(data);
   });
   socket.on('login', function(data) {
-    if (data.username && !data.username.includes(" "))
+    if (data.username && !data.username.includes(" ") && data.username != 'server')
     {
         console.log("SERVER: Welcome, " + data.username);
-        users.push(data);
-        nick = data.username;
-        socket.join('bigchat')
+        if (true)//!users.include(data))
+        {
+          users.push(data);
+          nick = data.username;
+          socket.join('bigchat')
+        }
+        else {
+          socket.emit('receiveMessage', {sender: 'server', message: 'someone already took that name!'} )
+        }
     }
 
   });

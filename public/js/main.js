@@ -43,9 +43,9 @@ const LoginModal = React.createClass({
     render() {
 
         return (
-            <div>
+            <div className="static-modal">
                 <Modal show={this.props.showModal} onHide={this.props.loginHandler}>
-                    <Modal.Header closeButton>
+                    <Modal.Header>
                         <Modal.Title>Enter the Barternet!</Modal.Title>
                     </Modal.Header>
                     <Modal.Body>
@@ -136,8 +136,8 @@ var Message = React.createClass({
         return (
             <div className="message">
                 <span className="messageAuthor">
-                    <span className="time">{this.state.time}</span>
-                    {this.props.sender}:&nbsp;
+                    <span className="time">{this.state.time}</span>&nbsp;
+                    {this.props.sender}:	&nbsp;
                 </span>
                 <span className="messageBody" dangerouslySetInnerHTML={this.rawMarkup()}/>
             </div>
@@ -165,7 +165,7 @@ var Topbar = React.createClass({
         return (
             <Navbar>
                 <Navbar.Header>
-                    <Navbar.Brand>
+                    <Navbar.Brand pullleft>
                         <a href="#">Barternet!</a>
                     </Navbar.Brand>
                     <Navbar.Toggle/>
