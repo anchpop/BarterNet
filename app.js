@@ -24,12 +24,20 @@ var io = require('socket.io')(server);
 
 
 checkIfUsernameTaken = function(users, username) {
-  for (i=0; i<users.length; i++)
-  {
-    if (users[i].username === username)
-      return true;
-  }
-  return false;
+    for (i = 0; i < users.length; i++) {
+        if (users[i].username === username)
+            return true;
+    }
+    return false;
+}
+
+removeuser = function(users, username) {
+  var copyusers = users;
+    for (i = 0; i < copyusers.length; i++) {
+        if (copyusers[i].username === username)
+          users .splice(i, 1);
+          return;
+    }
 }
 
 
@@ -46,10 +54,9 @@ io.on('connection', function(socket) {
         console.log(data);
     });
     socket.on('login', function(data) {
-        if (data.username && !data.username.includes(" ") && data.username != 'server') {
+        if (data.username && !data.username.includes(" ") && data.username != 'BarterBot') {
             console.log("SERVER: Welcome, " + data.username);
-            if (!checkIfUsernameTaken(users, data.username))
-            {
+            if (!checkIfUsernameTaken(users, data.username)) {
                 users.push(data);
                 nick = data.username;
                 socket.join('bigchat')
@@ -73,6 +80,13 @@ io.on('connection', function(socket) {
             sender: nick,
             text: data.message
         });
+    });
+    socket.on('disconnect', function() {
+        io.to('bigchat').emit('receiveMessage', {
+            sender: 'BarterBot',
+            text: nick + ' has disconnected!'
+        })
+        removeuser(users, nick);
     });
 });
 
