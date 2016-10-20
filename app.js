@@ -58,12 +58,11 @@ genHash = function(user)
   return crypto.createHash('md5').update(user).digest('hex');
 }
 
-addUser = function(userToAdd)
+addUser = function(userToAdd, callback)
 {
   db.collection('users').save({user: userToAdd, hash: genHash(userToAdd), bux: startingBux}, (err, result) => {
     if (err) return console.log(err)
-
-    console.log('saved to database')
+    callback(err, result);
   });
 }
 
@@ -78,11 +77,12 @@ initUser = function(userToInit, callback)
 {
   getUser(userToInit, function(err, doc)
   {
-    if (doc)
-      callback(null, doc);
+    if (err) return (console.log(err))
+    if (doc != null)
+      callback(err, doc);
     else {
-      addUser(userToInit);
-      getUser(userToInit, callback);
+      addUser(userToInit, (err, result) => {
+      getUser(userToInit, callback);});
     }
   });
 }

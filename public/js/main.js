@@ -104,6 +104,26 @@ const MessageForm = React.createClass({
     }
 });
 
+var BarterFace = React.createClass({
+
+    getInitialState() {
+        return ({face: "neutral"})
+    },
+
+    whenClicked(e) {
+      if (this.state.face == "neutral")
+      {
+        this.setState({face: "happy"});
+        socket.emit("givebux", {recipient: this.props.sender})
+      }
+    },
+
+    render: function() {
+        return (<img className="barterNeutralFace" onClick={this.whenClicked} src={"/imgs/barter_" + this.state.face + ".png"}/>)
+    }
+
+});
+
 var Message = React.createClass({
 
     getInitialState() {
@@ -131,10 +151,14 @@ var Message = React.createClass({
     },
 
     render: function() {
-        var classn = "message " + (this.props.readerName == this.props.sender ? "messageFromYou" : "");
-        console.log(this.props.sender);
+        var classn = "message " + (this.props.readerName == this.props.sender
+            ? "messageFromYou"
+            : "");
+        var bface = [];
+        if (this.props.sender != this.props.readerName && this.props.sender != "BarterBot") bface.push(<BarterFace sender={this.props.sender}/>);
         return (
             <div className={classn}>
+                {bface}
                 <span className="messageAuthor">
                     <span className="time">{this.state.time}</span>&nbsp; {this.props.sender}: &nbsp;
                 </span>
@@ -164,14 +188,14 @@ var Topbar = React.createClass({
         return (
             <Navbar>
                 <Navbar.Header>
-                     <Navbar.Brand>
+                    <Navbar.Brand>
                         <a href="#">Barternet!</a>
                     </Navbar.Brand>
                     <Navbar.Toggle/>
                 </Navbar.Header>
                 <Navbar.Collapse>
                     <Nav>
-                      <Navbar.Text><img src="/imgs/barter.png" className="barterBrand" /></Navbar.Text>
+                        <Navbar.Text><img src="/imgs/barter.png" className="barterBrand"/></Navbar.Text>
                         <NavItem eventKey={1} href="http://owossohigh.mi.oph.schoolinsites.com/?PageName=%27Teachers%27">School staff</NavItem>
                         <NavItem eventKey={2} href="https://ps.owosso.k12.mi.us/public/">Powerschool</NavItem>
                         <Navbar.Text>Current Barterbux: {this.props.bux}</Navbar.Text>
@@ -213,7 +237,7 @@ var ChatApp = React.createClass({
     },
 
     barterbuckUpdate(data) {
-      this.setState({Barterbux: data.bux});
+        this.setState({Barterbux: data.bux});
     },
 
     handleMessageSubmit(message) {
@@ -260,9 +284,9 @@ var ChatApp = React.createClass({
         return (
             <div>
                 <Topbar bux={this.state.Barterbux}/>
-                <LoginModal loginHandler={this.login} textChecker={this.checkTextEnteredForLogin} showModal={this.state.showModal} canLogin={this.state.canLogin}  />
+                <LoginModal loginHandler={this.login} textChecker={this.checkTextEnteredForLogin} showModal={this.state.showModal} canLogin={this.state.canLogin}/>
                 <MessageForm/>
-                <MessageList messages={this.state.messages} name={this.state.name} />
+                <MessageList messages={this.state.messages} name={this.state.name}/>
             </div>
         );
     }

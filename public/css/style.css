@@ -25,7 +25,16 @@ footer {
   top: 0em;
   margin: -10px -20px;
   margin-bottom: -5em;
+}
 
+.barterNeutralFace
+{
+  max-height: 2.5em;
+}
+
+#mainTable
+{
+  width: 100%
 }
 
 html { height: 100%; overflow:auto; }
