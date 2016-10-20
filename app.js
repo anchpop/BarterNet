@@ -36,22 +36,28 @@ MongoClient.connect(process.env.MONGO_URI, (err, database) => {
 var startingBux = 10
 var buxGiven = 10
 
-
-checkIfUsernameTaken = function(users, username) {
-    for (i = 0; i < users.length; i++) {
-        if (users[i].username === username)
-            return true;
+function getUserByNick(nick) {
+    var userscopy = users;
+    for (var x = 0; x < userscopy.length; x++) {
+        if (userscopy[x].username === nick) {
+            return userscopy[x];
+        }
     }
-    return false;
+    return null;
 }
 
-removeUserFromList = function(users, username) {
-  var copyusers = users;
-    for (i = 0; i < copyusers.length; i++) {
-        if (copyusers[i].username === username)
-          users .splice(i, 1);
-          return;
-    }
+
+checkIfUsernameTaken = function(username) {
+    if (getUserByNick(username))
+      return true;
+    return false
+}
+
+removeUserFromList = function(username) {
+  var i = users.indexOf(getUserByNick(username));
+  if(i != -1) {
+	   users.splice(i, 1);
+  }
 }
 
 genHash = function(user)
@@ -80,7 +86,11 @@ initUser = function(userToInit, callback)
   {
     if (err) return (console.log(err))
     if (doc != null)
+    {
+      console.log('user already created');
+      console.log('bux: ' + doc.bux);
       callback(err, doc);
+    }
     else {
       addUser(userToInit, (err, result) => {
       getUser(userToInit, callback);});
@@ -90,12 +100,12 @@ initUser = function(userToInit, callback)
 
 setBux = function(userToSet, amount)
 {
-  db.collection('users').updateOne({name: userToSet}, { $set: { bux : amount } });
+  db.collection('users').updateOne({user: userToSet}, { $set: { bux : amount } });
 }
 
 addBux = function(userToAdd, amount, callback)
 {
-  getUser(userToAdd, (err, result) => {db.collection('users').updateOne({name: userToAdd}, { $set: { bux : amount + result } }, callback);})
+  getUser(userToAdd, (err, result) => {db.collection('users').updateOne({user: userToAdd}, { $set: { bux : 20 } }, callback); })
 }
 
 
@@ -110,7 +120,7 @@ io.on('connection', function(socket) {
                 users.push({username: data.username, socket: socket});
                 nick = data.username;
                 socket.join('bigchat')
-                userDoc = initUser(nick, function(err, doc) {
+                initUser(nick, function(err, doc) {
                   io.to('bigchat').emit('receiveMessage', {
                       sender: "BarterBot",
                       text: "Welcome to the International Barter Network, " + nick + ". You have "  + doc.bux + " Barterbux!"
@@ -135,6 +145,7 @@ io.on('connection', function(socket) {
     });
     socket.on('givebux', function(data) {
       addBux(data.recipient, buxGiven, (err, result) => {
+        if (err) return (console.log(err));
         for (i = 0; i < users.length; i++)
         {
           if (users[i].username == data.recipient)
@@ -159,7 +170,7 @@ io.on('connection', function(socket) {
             sender: 'BarterBot',
             text: nick + ' has disconnected!'
         })
-        removeUserFromList(users, nick);
+        removeUserFromList(nick);
       }
     });
 });
