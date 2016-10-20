@@ -51,7 +51,7 @@ const LoginModal = React.createClass({
                     <Modal.Body>
                         <form onSubmit={this.props.loginHandler}>
                             <InputGroup >
-                                <FormControl type="text" id="nameinp" onChange={this.props.textChecker}/>
+                                <FormControl type="text" id="nameinp" placeholder="Your name!" onChange={this.props.textChecker}/>
                                 <InputGroupBtn>
                                     <Button type="submit" disabled={!this.props.canLogin}>Go!</Button>
                                 </InputGroupBtn>
@@ -202,6 +202,7 @@ var ChatApp = React.createClass({
         socket.on('user:left', this._userLeft);
         socket.on('change:name', this._userChangedName);
         socket.on('receiveMessage', this.handleRecieveMessage);
+        socket.on('barterbuckdate', this.barterbuckUpdate);
 
         $('#MessageList').css("padding-bottom", $('#MessageForm').height() + "px");
     },
@@ -209,6 +210,10 @@ var ChatApp = React.createClass({
     _initialize(data) {
         var {users, name} = data;
         this.setState({users, user: name});
+    },
+
+    barterbuckUpdate(data) {
+      this.setState({Barterbux: data.bux});
     },
 
     handleMessageSubmit(message) {
