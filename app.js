@@ -34,6 +34,7 @@ MongoClient.connect(process.env.MONGO_URI, (err, database) => {
 })
 
 var startingBux = 10
+var buxGiven = 10
 
 
 checkIfUsernameTaken = function(users, username) {
@@ -89,9 +90,13 @@ initUser = function(userToInit, callback)
 
 setBux = function(userToSet, amount)
 {
-  db.collection('users').updateOne({name: userToSet}, { $set: { bux : 1 } });
+  db.collection('users').updateOne({name: userToSet}, { $set: { bux : amount } });
 }
 
+addBux = function(userToAdd, amount, callback)
+{
+  getUser(userToAdd, (err, result) => {db.collection('users').updateOne({name: userToAdd}, { $set: { bux : amount + result } }, callback);})
+}
 
 
 io.on('connection', function(socket) {
@@ -102,7 +107,7 @@ io.on('connection', function(socket) {
         if (data.username && !data.username.includes(" ") && data.username != 'BarterBot') {
             console.log("SERVER: Welcome, " + data.username);
             if (!checkIfUsernameTaken(users, data.username)) {
-                users.push(data);
+                users.push({username: data.username, socket: socket});
                 nick = data.username;
                 socket.join('bigchat')
                 userDoc = initUser(nick, function(err, doc) {
@@ -128,6 +133,25 @@ io.on('connection', function(socket) {
             text: data.message
         });
     });
+    socket.on('givebux', function(data) {
+      addBux(data.recipient, buxGiven, (err, result) => {
+        for (i = 0; i < users.length; i++)
+        {
+          if (users[i].username == data.recipient)
+          {
+            users[i].socket.emit('receiveMessage', {
+                sender: 'BarterBot',
+                text: nick + ' has given you ' + buxGiven + ' Barterbux!'
+            });
+            users[i].socket.emit('barterbuckChange', {bux: buxGiven})
+          }
+        }
+        socket.emit('receiveMessage', {
+            sender: 'BarterBot',
+            text: 'You have given ' + data.recipient + " " + buxGiven + ' Barterbux!'
+        });
+      });
+    })
     socket.on('disconnect', function() {
       if (nick)
       {

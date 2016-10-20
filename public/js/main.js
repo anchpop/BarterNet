@@ -227,6 +227,7 @@ var ChatApp = React.createClass({
         socket.on('change:name', this._userChangedName);
         socket.on('receiveMessage', this.handleRecieveMessage);
         socket.on('barterbuckdate', this.barterbuckUpdate);
+        socket.on('barterbuckChange', this.barterbuckChange);
 
         $('#MessageList').css("padding-bottom", $('#MessageForm').height() + "px");
     },
@@ -238,6 +239,9 @@ var ChatApp = React.createClass({
 
     barterbuckUpdate(data) {
         this.setState({Barterbux: data.bux});
+    },
+    barterbuckChange(data) {
+        this.setState({Barterbux: this.state.Barterbux + data.bux});
     },
 
     handleMessageSubmit(message) {
